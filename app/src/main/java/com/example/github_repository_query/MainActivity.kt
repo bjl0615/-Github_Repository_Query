@@ -3,6 +3,9 @@ package com.example.github_repository_query
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.github_repository_query.adapter.UserAdapter
+import com.example.github_repository_query.databinding.ActivityMainBinding
 import com.example.github_repository_query.model.Repo
 import com.example.github_repository_query.model.UserDto
 import com.example.github_repository_query.network.GithubService
@@ -11,12 +14,14 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.create
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding : ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         val retrofit = Retrofit.Builder()
             .baseUrl("https://api.github.com/")
@@ -35,9 +40,20 @@ class MainActivity : AppCompatActivity() {
 
         })
 
+
+
+        val userAdapter =  UserAdapter()
+
+        binding.userRecyclerView.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = userAdapter
+        }
+
         githubService.searchUsers("squar").enqueue(object : Callback<UserDto> {
             override fun onResponse(call: Call<UserDto>, response: Response<UserDto>) {
                 Log.e("MainActivity" , "Search User : ${response.body().toString()}")
+
+                userAdapter.submitList(response.body()?.items)
             }
 
             override fun onFailure(call: Call<UserDto>, t: Throwable) {
